@@ -1,0 +1,19 @@
+# --- Parked for later: not part of the current class, do NOT push yet ---
+06_system_integration/
+
+# --- Python junk ---
+__pycache__/
+*.pyc
+*.pyo
+
+# --- Captured data / trained artifacts (regenerated locally) ---
+03_dataset/dataset/
+04_conveyor_training/models/
+*.mp4
+mosaic_*.jpg
+capture_*.jpg
+
+# --- Editors / OS ---
+.vscode/
+.idea/
+.DS_Store

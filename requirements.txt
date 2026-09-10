@@ -1,0 +1,16 @@
+# Core computer vision + ML
+opencv-python>=4.8
+numpy>=1.24
+scikit-learn>=1.3
+ultralytics>=8.0        # YOLO object detection
+
+# Database logging (module 06)
+psycopg2-binary>=2.9
+
+# NOTE:
+#   ROS 2 (rclpy) and the Niryo interfaces are NOT pip packages.
+#   They come from the system ROS 2 install and are sourced with:
+#       source /opt/ros/jazzy/setup.bash
+#       source ~/ros2_ws/install/setup.bash
+#   Only modules 05 (robot nodes) and 06 (logger) need ROS 2.
+#   Modules 01-04 run with plain Python + the packages above.
