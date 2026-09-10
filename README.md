@@ -88,6 +88,62 @@ Full details in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ---
 
+## Operating guide (the two things people always ask)
+
+### A) From dataset → Roboflow labeling → YOLO training on a GPU
+Short version (full step-by-step in [`03_dataset/README.md`](03_dataset/README.md)):
+
+```bash
+# 1. Capture images from the cameras you choose
+python3 03_dataset/capture_dataset.py 0 4
+
+# 2. Label in Roboflow (roboflow.com): Object Detection project ->
+#    upload 03_dataset/dataset/ -> draw a box + class on every piece ->
+#    Generate version (Resize 640) -> Export as "YOLOv8"
+
+# 3. Move the exported dataset to a machine WITH a GPU (lab PC or Colab):
+scp roboflow_export.zip user@gpu-host:~/pieces/      # or use Roboflow's download snippet
+
+# 4. Train on the GPU machine
+pip install ultralytics
+python3 -c "import torch; print('CUDA:', torch.cuda.is_available())"   # must be True
+yolo detect train data=path/to/data.yaml model=yolov8n.pt epochs=100 imgsz=640 batch=16 device=0
+
+# 5. Bring the model back and point the kit at it
+scp user@gpu-host:~/runs/detect/train/weights/best.pt ./best.pt   # -> config.YOLO_MODEL_PATH
+```
+
+### B) Starting the robot
+Short version (full step-by-step in [`05_robot_coordinates/README.md`](05_robot_coordinates/README.md)):
+
+```bash
+# 1. Power on the robot; make sure it is reachable (ping its hostname/IP)
+
+# 2. Source ROS 2 + workspace
+source /opt/ros/jazzy/setup.bash
+source ~/ros2_ws/install/setup.bash
+
+# 3. Set the robot's namespace + IP in the driver config:
+#    ~/ros2_ws/src/ned-ros2-driver/niryo_ned_ros2_driver/config/drivers_list.yaml
+#      robot_namespaces: ["robot2"]     robot_ips: ["ned2-aa-bbb-ccc.local"]
+
+# 4. Launch the driver (bridges ROS 2 <-> the physical robot)
+ros2 launch niryo_ned_ros2_driver driver.launch.py
+
+# 5. Verify
+ros2 node list                     # expect /ros2_driver_robot2
+ros2 topic echo --once /robot2/joint_states
+
+# 6. Now run vision + pick (each in its own terminal)
+cd 05_robot_coordinates
+./launch_detector.sh               # publishes /robot2/piece_detected
+./launch_pick.sh                   # moves the arm to pick
+```
+The driver in step 4 **must** be running before `calibrate_pick.py` or
+`pick_node.py`, or they will hang waiting for the robot.
+
+---
+
 ## Assign "camera 0 → zone 1"
 
 That assignment is just a dictionary in [`config.py`](config.py):
